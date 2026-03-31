@@ -1,0 +1,103 @@
+{
+  "name": "embedded-build-tools",
+  "displayName": "Embedded Build Tools",
+  "description": "Packages and provides embedded build tools (GCC, GDB, CMake, Ninja, Python) for embedded ARM development. No views — provides binary locations via API.",
+  "version": "1.0.0",
+  "preview": false,
+  "publisher": "mylonics",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mylonics/vscode-embedded-build-tools"
+  },
+  "bugs": {
+    "url": "https://github.com/mylonics/vscode-embedded-build-tools/issues"
+  },
+  "homepage": "https://github.com/mylonics/vscode-embedded-build-tools#readme",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "embedded",
+    "arm",
+    "gcc",
+    "gdb",
+    "cmake",
+    "ninja",
+    "python",
+    "cortex-m",
+    "build tools"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "embeddedBuildTools.installTools",
+        "title": "Embedded Build Tools: Install / Update Tools"
+      },
+      {
+        "command": "embeddedBuildTools.getGccPath",
+        "title": "Embedded Build Tools: Get arm-none-eabi-gcc Path"
+      },
+      {
+        "command": "embeddedBuildTools.getGppPath",
+        "title": "Embedded Build Tools: Get arm-none-eabi-g++ Path"
+      },
+      {
+        "command": "embeddedBuildTools.getGdbPath",
+        "title": "Embedded Build Tools: Get arm-none-eabi-gdb Path"
+      },
+      {
+        "command": "embeddedBuildTools.getObjcopyPath",
+        "title": "Embedded Build Tools: Get arm-none-eabi-objcopy Path"
+      },
+      {
+        "command": "embeddedBuildTools.getSizePath",
+        "title": "Embedded Build Tools: Get arm-none-eabi-size Path"
+      },
+      {
+        "command": "embeddedBuildTools.getCmakePath",
+        "title": "Embedded Build Tools: Get CMake Path"
+      },
+      {
+        "command": "embeddedBuildTools.getNinjaPath",
+        "title": "Embedded Build Tools: Get Ninja Path"
+      },
+      {
+        "command": "embeddedBuildTools.getPythonPath",
+        "title": "Embedded Build Tools: Get Python Path"
+      },
+      {
+        "command": "embeddedBuildTools.getGccBinDir",
+        "title": "Embedded Build Tools: Get ARM GCC Binary Directory"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "lint": "eslint src",
+    "test": "node ./dist/test/runTest.js",
+    "version": "auto-changelog -p && git add CHANGELOG.md"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "auto-changelog": "^2.5.0",
+    "eslint": "^8.56.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
+    "webpack": "^5.90.0",
+    "webpack-cli": "^5.1.4"
+  }
+}

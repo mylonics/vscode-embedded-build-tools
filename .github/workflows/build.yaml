@@ -1,0 +1,48 @@
+name: Build VSIX
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to build"
+        required: false
+        default: "develop"
+
+jobs:
+  build:
+    name: Build & Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Lint Project
+        run: npm run lint
+
+      - name: Build Extension
+        run: npx webpack --mode production
+
+      - name: Package VSIX
+        run: npx vsce package -o embedded-build-tools.vsix
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: embedded-build-tools.vsix
+          path: ./embedded-build-tools.vsix
