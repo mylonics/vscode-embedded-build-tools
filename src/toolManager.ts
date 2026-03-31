@@ -44,6 +44,8 @@ export interface ToolPaths {
   cmake: string | undefined;
   ninja: string | undefined;
   python: string | undefined;
+  /** Directory containing all ARM GCC binaries (arm-none-eabi-gcc, gdb, etc.). */
+  gccBinDir: string | undefined;
   toolsDir: string;
 }
 
@@ -108,6 +110,7 @@ export class ToolManager {
       cmake: resolve(`cmake${path.sep}bin${path.sep}cmake${exe}`),
       ninja: resolve(`ninja-build${path.sep}bin${path.sep}ninja${exe}`),
       python: pythonPath,
+      gccBinDir: resolve(`arm-none-eabi-gcc${path.sep}bin`),
       toolsDir: this.toolsDir,
     };
   }

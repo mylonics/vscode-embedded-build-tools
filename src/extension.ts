@@ -5,6 +5,11 @@
  * (e.g. bmp-debug) can use to obtain the paths to the bundled build tools:
  * GCC, GDB, G++, CMake, Ninja, Python, objcopy, and size.
  *
+ * It also registers VS Code commands for every path so that launch
+ * configurations can reference them with the ${command:...} syntax, e.g.:
+ *
+ *   "miDebuggerPath": "${command:embeddedBuildTools.getGdbPath}"
+ *
  * Usage from a dependent extension:
  *
  *   const ext = vscode.extensions.getExtension<EmbeddedBuildToolsApi>(
@@ -48,6 +53,12 @@ export interface EmbeddedBuildToolsApi {
   /** Full path to portable python, or undefined if not installed. */
   getPythonPath(): Promise<string | undefined>;
 
+  /**
+   * Directory containing all ARM GCC binaries (arm-none-eabi-gcc, gdb, g++, …).
+   * Use this when you need the bin dir rather than individual executable paths.
+   */
+  getGccBinDir(): Promise<string | undefined>;
+
   /** The directory that contains all unpacked tool subdirectories. */
   getToolsDir(): string;
 }
@@ -59,20 +70,88 @@ export function activate(
 ): EmbeddedBuildToolsApi {
   manager = new ToolManager(context.globalStorageUri.fsPath);
 
-  // Register the install/update command
+  // Start background install immediately so tools are ready as soon as possible.
+  // This is non-blocking — activation completes instantly.
+  manager.ensureInstalled();
+
+  // ── Commands ─────────────────────────────────────────────────────────────
+
+  // Install / update command (visible in the Command Palette)
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'embeddedBuildTools.installTools',
       async () => {
-        if (!manager) {
-          return;
-        }
-        // Force a fresh check (not cached) by removing the existing tools dir
-        // if the user explicitly asks to update.
+        if (!manager) { return; }
         await manager.ensureInstalled();
       },
     ),
   );
+
+  // Helper to register a command that resolves a path after ensuring install.
+  const registerPathCommand = (
+    commandId: string,
+    getter: () => Promise<string | undefined>,
+  ) => {
+    context.subscriptions.push(
+      vscode.commands.registerCommand(commandId, getter),
+    );
+  };
+
+  registerPathCommand('embeddedBuildTools.getGccPath', async () => {
+    if (!manager) { return undefined; }
+    await manager.ensureInstalled();
+    return manager.getToolPaths().gcc;
+  });
+
+  registerPathCommand('embeddedBuildTools.getGppPath', async () => {
+    if (!manager) { return undefined; }
+    await manager.ensureInstalled();
+    return manager.getToolPaths().gpp;
+  });
+
+  registerPathCommand('embeddedBuildTools.getGdbPath', async () => {
+    if (!manager) { return undefined; }
+    await manager.ensureInstalled();
+    return manager.getToolPaths().gdb;
+  });
+
+  registerPathCommand('embeddedBuildTools.getObjcopyPath', async () => {
+    if (!manager) { return undefined; }
+    await manager.ensureInstalled();
+    return manager.getToolPaths().objcopy;
+  });
+
+  registerPathCommand('embeddedBuildTools.getSizePath', async () => {
+    if (!manager) { return undefined; }
+    await manager.ensureInstalled();
+    return manager.getToolPaths().size;
+  });
+
+  registerPathCommand('embeddedBuildTools.getCmakePath', async () => {
+    if (!manager) { return undefined; }
+    await manager.ensureInstalled();
+    return manager.getToolPaths().cmake;
+  });
+
+  registerPathCommand('embeddedBuildTools.getNinjaPath', async () => {
+    if (!manager) { return undefined; }
+    await manager.ensureInstalled();
+    return manager.getToolPaths().ninja;
+  });
+
+  registerPathCommand('embeddedBuildTools.getPythonPath', async () => {
+    if (!manager) { return undefined; }
+    await manager.ensureInstalled();
+    return manager.getToolPaths().python;
+  });
+
+  registerPathCommand('embeddedBuildTools.getGccBinDir', async () => {
+    if (!manager) { return undefined; }
+    await manager.ensureInstalled();
+    return manager.getToolPaths().gccBinDir;
+  });
+
+  // ── API object returned to dependent extensions ───────────────────────────
 
   const api: EmbeddedBuildToolsApi = {
     ensureToolsInstalled(): Promise<boolean> {
@@ -128,6 +207,12 @@ export function activate(
       if (!manager) { return undefined; }
       await manager.ensureInstalled();
       return manager.getToolPaths().python;
+    },
+
+    async getGccBinDir(): Promise<string | undefined> {
+      if (!manager) { return undefined; }
+      await manager.ensureInstalled();
+      return manager.getToolPaths().gccBinDir;
     },
 
     getToolsDir(): string {

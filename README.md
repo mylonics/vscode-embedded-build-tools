@@ -2,13 +2,13 @@
 
 A Visual Studio Code extension that **provides embedded build tools** (ARM GCC, GDB, CMake, Ninja, Python) for embedded ARM development.
 
-This extension has **no views**.  It exposes an API that other extensions can use to obtain the paths to the packaged tools, and downloads the correct platform-specific bundle on first use.
+This extension has **no views**.  It exposes an API and VS Code commands that other extensions and launch configurations can use to obtain the paths to the packaged tools, and downloads the correct platform-specific bundle on first use.
 
 ## Tools Provided
 
 | Tool | Version |
 |------|---------|
-| `arm-none-eabi-gcc` / `arm-none-eabi-gdb` | 13.3.1-1.1 |
+| `arm-none-eabi-gcc` / `arm-none-eabi-gdb` | 15.2.1-1.1 |
 | `cmake` | 3.28.6-1 |
 | `ninja` | 1.12.1-1 |
 | `python` (portable) | 3.12.6-1 |
@@ -23,13 +23,51 @@ This extension has **no views**.  It exposes an API that other extensions can us
 
 ## How It Works
 
-On first use, the extension downloads the appropriate pre-built bundle from the [embedded-build-tools releases](https://github.com/mylonics/embedded-build-tools/releases) and stores it in VS Code's global storage directory.  Subsequent calls use the cached copy.
+On first activation, the extension automatically starts downloading the appropriate pre-built bundle from the [embedded-build-tools releases](https://github.com/mylonics/embedded-build-tools/releases) in the background (with a progress notification). The bundle is stored in VS Code's global storage directory and persists across extension updates.
+
+It always downloads the **latest release** of `mylonics/embedded-build-tools`.
 
 You can also manually trigger (re-)installation via the Command Palette:
 
 ```
 Embedded Build Tools: Install / Update Tools
 ```
+
+## Using Paths in Launch Configurations
+
+All tool paths are exposed as VS Code commands, allowing them to be used directly in `launch.json` via the `${command:...}` syntax:
+
+```jsonc
+// .vscode/launch.json
+{
+  "configurations": [
+    {
+      "name": "Debug (BMP)",
+      "type": "cortex-debug",
+      "request": "launch",
+      "miDebuggerPath": "${command:embeddedBuildTools.getGdbPath}",
+      "miDebuggerArgs": "--interpreter=mi2"
+    }
+  ]
+}
+```
+
+### Available Commands
+
+| Command | Returns |
+|---------|---------|
+| `embeddedBuildTools.getGccPath` | Full path to `arm-none-eabi-gcc` |
+| `embeddedBuildTools.getGppPath` | Full path to `arm-none-eabi-g++` |
+| `embeddedBuildTools.getGdbPath` | Full path to `arm-none-eabi-gdb` |
+| `embeddedBuildTools.getObjcopyPath` | Full path to `arm-none-eabi-objcopy` |
+| `embeddedBuildTools.getSizePath` | Full path to `arm-none-eabi-size` |
+| `embeddedBuildTools.getCmakePath` | Full path to `cmake` |
+| `embeddedBuildTools.getNinjaPath` | Full path to `ninja` |
+| `embeddedBuildTools.getPythonPath` | Full path to portable `python` |
+| `embeddedBuildTools.getGccBinDir` | Directory containing **all** ARM GCC binaries |
+| `embeddedBuildTools.installTools` | Install / update tools (no return value) |
+
+`getGccBinDir` is useful when you need to construct a path to any binary that is not individually exposed (e.g. `arm-none-eabi-nm`, `arm-none-eabi-strip`) — just join the returned directory with the binary filename.
 
 ## API for Extension Authors
 
@@ -45,7 +83,7 @@ const ext = vscode.extensions.getExtension<EmbeddedBuildToolsApi>(
 if (ext) {
   const api = await ext.activate();
 
-  // Ensure tools are downloaded (shows progress notification)
+  // Ensure tools are downloaded (shows progress notification if needed)
   const ok = await api.ensureToolsInstalled();
 
   if (ok) {
@@ -56,7 +94,10 @@ if (ext) {
     const ninjaPath  = await api.getNinjaPath();  // ninja
     const pythonPath = await api.getPythonPath(); // portable python
 
-    // Directory containing all tool sub-directories
+    // Directory containing all ARM GCC binaries
+    const gccBinDir  = await api.getGccBinDir();
+
+    // Root directory containing all tool sub-directories
     const toolsDir   = api.getToolsDir();
   }
 }
@@ -77,6 +118,9 @@ interface EmbeddedBuildToolsApi {
   getCmakePath():   Promise<string | undefined>;  // cmake
   getNinjaPath():   Promise<string | undefined>;  // ninja
   getPythonPath():  Promise<string | undefined>;  // portable python
+
+  /** Directory containing all ARM GCC binaries (arm-none-eabi-*). */
+  getGccBinDir():   Promise<string | undefined>;
 
   /** Root directory that contains all tool sub-directories. */
   getToolsDir(): string;

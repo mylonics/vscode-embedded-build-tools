@@ -39,6 +39,42 @@
       {
         "command": "embeddedBuildTools.installTools",
         "title": "Embedded Build Tools: Install / Update Tools"
+      },
+      {
+        "command": "embeddedBuildTools.getGccPath",
+        "title": "Embedded Build Tools: Get arm-none-eabi-gcc Path"
+      },
+      {
+        "command": "embeddedBuildTools.getGppPath",
+        "title": "Embedded Build Tools: Get arm-none-eabi-g++ Path"
+      },
+      {
+        "command": "embeddedBuildTools.getGdbPath",
+        "title": "Embedded Build Tools: Get arm-none-eabi-gdb Path"
+      },
+      {
+        "command": "embeddedBuildTools.getObjcopyPath",
+        "title": "Embedded Build Tools: Get arm-none-eabi-objcopy Path"
+      },
+      {
+        "command": "embeddedBuildTools.getSizePath",
+        "title": "Embedded Build Tools: Get arm-none-eabi-size Path"
+      },
+      {
+        "command": "embeddedBuildTools.getCmakePath",
+        "title": "Embedded Build Tools: Get CMake Path"
+      },
+      {
+        "command": "embeddedBuildTools.getNinjaPath",
+        "title": "Embedded Build Tools: Get Ninja Path"
+      },
+      {
+        "command": "embeddedBuildTools.getPythonPath",
+        "title": "Embedded Build Tools: Get Python Path"
+      },
+      {
+        "command": "embeddedBuildTools.getGccBinDir",
+        "title": "Embedded Build Tools: Get ARM GCC Binary Directory"
       }
     ]
   },
