@@ -11,7 +11,7 @@ This extension has **no views**.  It exposes an API and VS Code commands that ot
 | `arm-none-eabi-gcc` / `arm-none-eabi-gdb` | 15.2.1-1.1 |
 | `cmake` | 3.28.6-1 |
 | `ninja` | 1.12.1-1 |
-| `python` (portable) | 3.12.6-1 |
+| `python` (portable) | 3.12.6+20240909 |
 
 ## Supported Platforms
 

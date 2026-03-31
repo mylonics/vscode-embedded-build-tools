@@ -3,6 +3,7 @@
   "displayName": "Embedded Build Tools",
   "description": "Packages and provides embedded build tools (GCC, GDB, CMake, Ninja, Python) for embedded ARM development. No views — provides binary locations via API.",
   "version": "1.0.0",
+  "preview": false,
   "publisher": "mylonics",
   "license": "MIT",
   "repository": {
