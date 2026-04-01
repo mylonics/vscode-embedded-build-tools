@@ -219,8 +219,9 @@ export class ToolManager {
               return;
             }
 
-            const contentLength = res.headers['content-length'];
-            const totalBytes = contentLength ? parseInt(contentLength, 10) : undefined;
+            const rawCL = res.headers['content-length'];
+            const parsed = typeof rawCL === 'string' ? parseInt(rawCL, 10) : NaN;
+            const totalBytes = Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
             let downloadedBytes = 0;
 
             const file = fs.createWriteStream(dest);

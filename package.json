@@ -36,6 +36,16 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Embedded Build Tools",
+      "properties": {
+        "embeddedBuildTools.toolsPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Custom directory where embedded build tools are stored. When empty, the extension's global storage directory is used. If tools already exist at this path they will be reused; otherwise they are downloaded automatically."
+        }
+      }
+    },
     "commands": [
       {
         "command": "embeddedBuildTools.installTools",
