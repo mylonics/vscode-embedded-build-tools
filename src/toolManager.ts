@@ -143,7 +143,29 @@ export class ToolManager {
           const archivePath = path.join(this.storageDir, artifactName);
 
           progress.report({ message: `Downloading ${artifactName} …` });
-          await this._download(downloadUrl, archivePath);
+          let lastPercent = -1;
+          let lastReportedMB = -1;
+          await this._download(downloadUrl, archivePath, (downloaded, total) => {
+            if (total) {
+              const percent = Math.floor((downloaded / total) * 100);
+              if (percent !== lastPercent) {
+                lastPercent = percent;
+                const downloadedMB = (downloaded / (1024 * 1024)).toFixed(1);
+                const totalMB = (total / (1024 * 1024)).toFixed(1);
+                progress.report({
+                  message: `Downloading ${artifactName} … ${percent}% (${downloadedMB} / ${totalMB} MB)`,
+                });
+              }
+            } else {
+              const currentMB = Math.floor(downloaded / (1024 * 1024));
+              if (currentMB !== lastReportedMB) {
+                lastReportedMB = currentMB;
+                progress.report({
+                  message: `Downloading ${artifactName} … ${currentMB} MB`,
+                });
+              }
+            }
+          });
 
           progress.report({ message: 'Extracting tools …' });
           await this._extract(archivePath, this.storageDir, platformKey);
@@ -173,7 +195,11 @@ export class ToolManager {
   }
 
   /** Download a URL to a local file, following redirects. */
-  private _download(url: string, dest: string): Promise<void> {
+  private _download(
+    url: string,
+    dest: string,
+    onProgress?: (downloaded: number, total: number | undefined) => void,
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
       const doRequest = (currentUrl: string) => {
         https
@@ -192,7 +218,21 @@ export class ToolManager {
               reject(new Error(`HTTP ${res.statusCode} fetching ${currentUrl}`));
               return;
             }
+
+            const rawCL = res.headers['content-length'];
+            const parsed = typeof rawCL === 'string' ? parseInt(rawCL, 10) : NaN;
+            const totalBytes = Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+            let downloadedBytes = 0;
+
             const file = fs.createWriteStream(dest);
+
+            res.on('data', (chunk: Buffer) => {
+              downloadedBytes += chunk.length;
+              if (onProgress) {
+                onProgress(downloadedBytes, totalBytes);
+              }
+            });
+
             res.pipe(file);
             file.on('finish', () => file.close(() => resolve()));
             file.on('error', (e) => {

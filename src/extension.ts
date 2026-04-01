@@ -65,14 +65,34 @@ export interface EmbeddedBuildToolsApi {
 
 let manager: ToolManager | undefined;
 
+/** Resolve the storage directory from settings, falling back to the extension global storage. */
+function resolveStoragePath(globalStoragePath: string): string {
+  const configured = vscode.workspace
+    .getConfiguration('embeddedBuildTools')
+    .get<string>('toolsPath', '')
+    .trim();
+  return configured || globalStoragePath;
+}
+
 export function activate(
   context: vscode.ExtensionContext,
 ): EmbeddedBuildToolsApi {
-  manager = new ToolManager(context.globalStorageUri.fsPath);
+  const globalStoragePath = context.globalStorageUri.fsPath;
+  manager = new ToolManager(resolveStoragePath(globalStoragePath));
 
   // Start background install immediately so tools are ready as soon as possible.
   // This is non-blocking — activation completes instantly.
   manager.ensureInstalled();
+
+  // Re-create the ToolManager when the toolsPath setting changes.
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration('embeddedBuildTools.toolsPath')) {
+        manager = new ToolManager(resolveStoragePath(globalStoragePath));
+        manager.ensureInstalled();
+      }
+    }),
+  );
 
   // ── Commands ─────────────────────────────────────────────────────────────
 
